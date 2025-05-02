@@ -1,29 +1,41 @@
 import streamlit as st
 import requests
+import time
 
 st.title("RAG Document Assistant")
 
-uploaded_file = st.file_uploader("Upload PDF")
-if uploaded_file:
-    files = {"file": (uploaded_file.name, uploaded_file.getvalue())}
-    try:
-        response = requests.post("http://localhost:8000/upload/", files=files)
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-        data = response.json()
+# File upload section
+with st.expander("Upload Document", expanded=True):
+    uploaded_file = st.file_uploader("Choose PDF", type="pdf")
+    if uploaded_file:
+        with st.spinner("Processing PDF..."):
+            try:
+                response = requests.post(
+                    "http://localhost:8000/upload/",
+                    files={"file": (uploaded_file.name, uploaded_file.getvalue())}
+                )
+                response.raise_for_status()
+                st.success(response.json().get("message"))
+            except Exception as e:
+                st.error(f"Upload failed: {str(e)}")
 
-        if "message" in data:
-            st.success(data["message"])
-        elif "error" in data:
-            st.error(f"Error: {data['error']}")
-        else:
-            st.warning("Unexpected response from server")
-
-    except requests.exceptions.RequestException as e:
-        st.error(f"Connection error: {e}")
-    except ValueError as e:
-        st.error(f"JSON decode error: {e}")
-
-query = st.text_input("Ask about the document:")
+# Query section
+query = st.text_input("Ask about the document:", placeholder="Enter your question...")
 if query:
-    response = requests.post("http://localhost:8000/query/", json={"query": query})
-    st.markdown(f"**Answer:** {response.json().get('answer')}")
+    with st.spinner("Searching documents..."):
+        try:
+            start_time = time.time()
+            response = requests.post(
+                "http://localhost:8000/query/",
+                json={"query": query},
+                timeout=30
+            )
+            response.raise_for_status()
+            
+            st.markdown(f"**Answer:** {response.json().get('answer')}")
+            st.caption(f"Response time: {time.time() - start_time:.2f}s")
+            
+        except requests.exceptions.RequestException as e:
+            st.error(f"Connection error: {str(e)}")
+        except Exception as e:
+            st.error(f"Processing error: {str(e)}")
