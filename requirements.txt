@@ -1,0 +1,11 @@
+requests
+pgvector==0.2.1
+sqlalchemy
+psycopg2-binary
+PyPDF2
+sentence-transformers
+fastapi
+uvicorn
+streamlit
+langchain
+
