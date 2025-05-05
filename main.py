@@ -6,6 +6,7 @@ from rag_system import RAGSystem
 import os
 import logging
 from dotenv import load_dotenv
+import tempfile
 
 # Load environment variables
 load_dotenv()
@@ -26,34 +27,40 @@ class QueryRequest(BaseModel):
 @app.post("/upload/")
 async def upload_pdf(file: UploadFile = File(...)):
     try:
-        # Save uploaded file temporarily
         contents = await file.read()
-        file_path = f"/tmp/{file.filename}"
+        file_path = os.path.join(tempfile.gettempdir(), file.filename)
+        
         with open(file_path, "wb") as f:
             f.write(contents)
         
-        # Process PDF
         docs = processor.process_pdf(file_path)
         
-        # Store in database
         session = SessionLocal()
         try:
             for doc in docs:
+                # Sanitize content: Remove NUL characters
+                clean_content = doc["content"].replace("\x00", " ")
+                
                 document = Document(
-                    content=doc["content"],
+                    content=clean_content,  # Use cleaned content
                     embedding=doc["embedding"],
                     doc_metadata=doc["doc_metadata"]
                 )
                 session.add(document)
             session.commit()
+        except Exception as db_error:
+            session.rollback()
+            raise db_error
         finally:
             session.close()
-        
+            os.remove(file_path)  # Clean up temp file
+            
         return {"message": f"Processed {len(docs)} chunks"}
     
     except Exception as e:
-        logger.error(f"Upload error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.exception("Upload failed")
+        raise HTTPException(500, detail=str(e))
+
 
 @app.post("/query/")
 def query_document(request: QueryRequest):

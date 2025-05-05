@@ -2,17 +2,15 @@ from sqlalchemy import create_engine, Column, Integer, String, JSON
 from sqlalchemy.orm import declarative_base, sessionmaker
 from pgvector.sqlalchemy import Vector
 import os
-
-from urllib.parse import quote
 from dotenv import load_dotenv
 
-raw_password = os.getenv("DB_PASSWORD")  # Store password separately in .env
-encoded_password = quote(raw_password)
-DATABASE_URL = f"postgresql://{os.getenv('DB_USER')}:{encoded_password}@{os.getenv('DB_HOST')}/{os.getenv('DB_NAME')}?sslmode=require"
-DATABASE_URL = os.getenv("DATABASE_URL")
-
+# Load environment variables first
 load_dotenv()
-# Get from environment
+
+# Verify database URL exists
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable not set")
 
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

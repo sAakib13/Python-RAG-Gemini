@@ -4,7 +4,7 @@ import os
 class RAGSystem:
     def __init__(self, api_key):
         self.api_key = api_key
-        self.url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent"
+        self.url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
         
     def generate_response(self, prompt):
         try:
