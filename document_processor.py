@@ -5,6 +5,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class DocumentProcessor:
     def __init__(self):
         # 384-dimensional model
@@ -24,17 +25,17 @@ class DocumentProcessor:
                 for page in reader.pages:
                     page_text = page.extract_text() or ""
                     text += page_text + "\n"
-            
+
             # Split and embed
             chunks = self.splitter.split_text(text)
             embeddings = self.embed_model.encode(chunks)
-            
+
             return [{
                 "content": chunk,
                 "embedding": emb.tolist(),
                 "doc_metadata": {"source": file_path}
             } for chunk, emb in zip(chunks, embeddings)]
-        
+
         except Exception as e:
             logger.error(f"Processing error: {str(e)}")
             raise

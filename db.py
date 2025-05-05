@@ -16,12 +16,14 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+
 class Document(Base):
     __tablename__ = "documents"
     id = Column(Integer, primary_key=True, index=True)
     content = Column(String)
     embedding = Column(Vector(384))  # Match sentence-transformers dimension
     doc_metadata = Column(JSON)
+
 
 def init_db():
     Base.metadata.create_all(bind=engine)
