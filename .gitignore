@@ -173,3 +173,4 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 script.txt
+frontend.py
