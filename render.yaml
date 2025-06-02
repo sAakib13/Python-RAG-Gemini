@@ -1,0 +1,5 @@
+services:
+  - type: web
+    name: python-rag
+    plan: free
+    swap_size_mb: 512
