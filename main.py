@@ -15,7 +15,7 @@ import asyncio
 import tempfile
 
 
-import fitz  # PyMuPDF
+import fitz
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import pdfplumber
 from sklearn.feature_extraction.text import TfidfVectorizer
