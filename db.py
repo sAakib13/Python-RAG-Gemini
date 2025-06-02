@@ -30,7 +30,7 @@ class Document(Base):
         embedding (Vector): 384-dimensional vector for semantic similarity.
         doc_metadata (dict): Additional metadata about the source/document.
     """
-    __tablename__ = "documents"
+    __tablename__ = "newdoc"
 
     id = Column(Integer, primary_key=True, index=True)
     content = Column(String)
