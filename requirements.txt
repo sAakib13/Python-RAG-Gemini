@@ -10,3 +10,4 @@ sentence-transformers==2.3.1
 # streamlit==1.32.0
 langchain==0.1.13
 python-multipart==0.0.20
+fitz==0.0.1
