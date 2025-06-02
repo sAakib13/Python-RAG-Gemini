@@ -41,7 +41,7 @@ class RAGSystem:
             # Define request payload with the prompt
             payload = {
                 "contents": [{
-                    "parts": [{"text": f"{prompt}\n\nLimit your answer to 160 characters."}]
+                    "parts": [{"text": f"{prompt}\n\nLimit your answer to 320 characters."}]
                 }]
             }
 
