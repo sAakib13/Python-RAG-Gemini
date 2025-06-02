@@ -13,7 +13,7 @@ import os
 import re
 import asyncio
 import tempfile
-import fitz
+import pymupdf as fitz
 import pdfplumber
 from datetime import datetime
 
