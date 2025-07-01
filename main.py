@@ -1,3 +1,5 @@
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
 from fastapi import FastAPI, UploadFile, File, HTTPException, Query
 from fastapi.responses import JSONResponse
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -254,17 +256,33 @@ def query_document(request: QueryRequest):
     try:
         query_embed = processor.embed_model.encode(request.query).tolist()
         session = SessionLocal()
-        try:
-            results = session.query(Document).order_by(
-                Document.embedding.cosine_distance(query_embed)
-            ).limit(3).all()
 
-            context = "\n".join([doc.content for doc in results])
-            prompt = f"Context:\n{context}\n\nQuestion: {request.query}\nAnswer:"
-            answer = rag.generate_response(prompt)
-            return {"answer": answer}
-        finally:
-            session.close()
+        # Fetch all documents and their embeddings
+        all_docs = session.query(Document).all()
+        session.close()
+
+        if not all_docs:
+            raise HTTPException(
+                status_code=404, detail="No documents found in the database.")
+
+        # Convert embeddings to numpy arrays
+        doc_vectors = np.array([doc.embedding for doc in all_docs])
+        query_vector = np.array(query_embed).reshape(1, -1)
+
+        # Compute cosine similarities
+        similarities = cosine_similarity(doc_vectors, query_vector).flatten()
+
+        # Get top 3 documents by similarity
+        top_indices = similarities.argsort()[-3:][::-1]
+        top_docs = [all_docs[i] for i in top_indices]
+
+        # Build prompt with top contexts
+        context = "\n".join([doc.content for doc in top_docs])
+        prompt = f"Context:\n{context}\n\nQuestion: {request.query}\nAnswer:"
+        answer = rag.generate_response(prompt)
+
+        return {"answer": answer}
+
     except Exception as e:
-        logger.error(f"Query error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error(f"Query error: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Query error: {str(e)}")
